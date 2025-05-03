@@ -1,0 +1,8 @@
+./flink run-application \
+-d \
+-t yarn-application \
+-ynm Flink_Cdc \
+-yjm 900 \
+-ytm 900 \
+-yqu root.default \
+-c com.gjn.realtime_Dim.Flink_Cdc /opt/soft/flink-1.17.1/local_jars/stream_dev1-1.0-SNAPSHOT-jar-with-dependencies.jar

@@ -8,8 +8,7 @@ import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
 
-        import java.io.IOException;
-        import java.util.Properties;
+import java.util.Properties;
 /**
  * @Package com.gjn.realtime_Dim.utils.Flink_source
  * @Author jingnan.guo
