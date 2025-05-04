@@ -45,7 +45,7 @@ public class dws_user_user_login_window extends BaseApp {
     public void handle(StreamExecutionEnvironment env, DataStreamSource<String> kafkaStrDS) {
        //转换类型
         SingleOutputStreamOperator<JSONObject> map = kafkaStrDS.map(JSON::parseObject);
-//        map.print();
+        map.print();
 //        2> {"common":{"ar":"25","uid":"382","os":"iOS 13.2.9","ch":"Appstore","is_new":"1","md":"iPhone 14 Plus","mid":"mid_50","vc":"v2.1.134","ba":"iPhone","sid":"dde82200-6622-47fd-a2f3-08489fcb2a95"},"page":{"page_id":"payment","item":"3742","during_time":17322,"item_type":"order_id","last_page_id":"order"},"ts":1744816572878}
 
         //过滤uid
@@ -58,7 +58,7 @@ public class dws_user_user_login_window extends BaseApp {
                         && ("login".equals(lastPageId) || StringUtils.isEmpty(lastPageId));
             }
         });
-//        filter.print();
+        filter.print();
 //        2> {"common":{"ar":"32","uid":"456","os":"iOS 13.3.1","ch":"Appstore","is_new":"0","md":"iPhone 13","mid":"mid_68","vc":"v2.1.134","ba":"iPhone","sid":"91bd8ae7-9200-41e9-8df6-3903e9e8a322"},"page":{"page_id":"mine","during_time":10319,"last_page_id":"payment"},"ts":1744816393468}
 
 
@@ -160,7 +160,7 @@ public class dws_user_user_login_window extends BaseApp {
                 }
         );
 
-//        reduce.print();
+        reduce.print();
 //        3> UserLoginBean(stt=2025-04-16 14:00:00, edt=2025-04-16 17:00:00, curDate=2025-04-16, backCt=1, uuCt=0, ts=1744788137467)
 
         //转成json

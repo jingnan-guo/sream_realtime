@@ -127,13 +127,14 @@ public class dws_trade_cart_add_uu_window extends BaseApp {
                     }
                 }
         );
-//        aggregate.print();
+        aggregate.print();
 //        3> CartADDUU(stt=2025-04-16 19:14:35, edt=2025-04-16 19:14:40, curDate=2025-04-16, cartAddUuCt=3)
 
 
         // 写入doris
 
-        SingleOutputStreamOperator<String> map1 = aggregate.map(new MapFunction<CartADDUU, String>() {
+        SingleOutputStreamOperator<String> map1 =
+                aggregate.map(new MapFunction<CartADDUU, String>() {
             @Override
             public String map(CartADDUU cartADDUU)   {
                 return JSON.toJSONString(cartADDUU);

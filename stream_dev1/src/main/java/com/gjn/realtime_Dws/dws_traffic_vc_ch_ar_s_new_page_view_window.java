@@ -96,7 +96,7 @@ public class dws_traffic_vc_ch_ar_s_new_page_view_window extends BaseApp {
                     }
                 }
         );
-//        beanDS.print();
+        beanDS.print();
 //        4> TrafficPageViewBean(stt=, edt=, cur_date=, vc=v2.1.134, ch=360, ar=10, isNew=1, uvCt=0, svCt=0, pvCt=1, durSum=18231, ts=1744031377164)
         SingleOutputStreamOperator<TrafficPageViewBean> trafficPageViewBeanSingleOutputStreamOperator = beanDS.assignTimestampsAndWatermarks(
                 WatermarkStrategy.
@@ -121,7 +121,7 @@ public class dws_traffic_vc_ch_ar_s_new_page_view_window extends BaseApp {
                     }
                 }
         );
-//        dimKeyedDS.print();
+       dimKeyedDS.print();
         WindowedStream<TrafficPageViewBean, Tuple4<String, String, String, String>, TimeWindow> windowDS
                 = dimKeyedDS.window(TumblingEventTimeWindows.
                 of(org.apache.flink.streaming.api.windowing.time.Time.seconds(10)));
@@ -154,7 +154,7 @@ public class dws_traffic_vc_ch_ar_s_new_page_view_window extends BaseApp {
                             }
                         }
                 );
-//        result.print();
+       result.print();
 //        2> TrafficPageViewBean(stt=2025-04-16 23:31:10, edt=2025-04-16 23:31:20, cur_date=2025-04-16, vc=v2.1.134, ch=oppo, ar=11, isNew=1, uvCt=0, svCt=0, pvCt=1, durSum=19526, ts=1744817474280)
 
         SingleOutputStreamOperator<String> map = result
@@ -167,7 +167,7 @@ public class dws_traffic_vc_ch_ar_s_new_page_view_window extends BaseApp {
                 });
 
         map.sinkTo(finksink.getDorisSink("dws_traffic_vc_ch_ar_is_new_page_view_window"));
-//   map.print();
+  map.print();
 
     }
 

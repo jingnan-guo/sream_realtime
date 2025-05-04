@@ -54,11 +54,11 @@ public class dws_trade_sku_order_window extends BaseApp {
             }
         });
 
-//        process.print();
+       process.print();
 //        2> {"id":"2347","order_id":"1478","user_id":"220","sku_id":"2","sku_name":"小米12S Ultra 骁龙8+旗舰处理器 徕卡光学镜头 2K超视感屏 120Hz高刷 67W快充 12GB+512GB 冷杉绿 5G手机","province_id":"1","activity_id":"1","activity_rule_id":"1","coupon_id":null,"date_id":null,"create_time":"1744411542000","sku_num":"1","split_original_amount":"6999.0000","split_activity_amount":"500.00","split_coupon_amount":"0.00","split_total_amount":"6499.00","ts_ms":1744554510363}
         //TODO 2.按照唯一键(订单明细的id)进行分组
         KeyedStream<JSONObject, String> orderDetailIdKeyedDS = process.keyBy(o->o.getString("id"));
-//        orderDetailIdKeyedDS.print();
+        orderDetailIdKeyedDS.print();
 //        2> {"create_time":"1744412806000","sku_num":"1","split_original_amount":"999.0000","split_coupon_amount":"0.00","sku_id":"4","user_id":"474","province_id":"28","sku_name":"Redmi 10X 4G Helio G85游戏芯 4800万超清四摄 5020mAh大电量 小孔全面屏 128GB大存储 4GB+128GB 冰雾白 游戏智能手机 小米 红米","id":"2363","order_id":"1491","split_activity_amount":"0.00","ts_ms":1744554510367,"split_total_amount":"999.00"}
 
         //TODO 3.去重
@@ -197,7 +197,7 @@ public class dws_trade_sku_order_window extends BaseApp {
                 }
         );
 
-//        beanDS.print();
+        beanDS.print();
 //        3> TradeSkuOrderBean(stt=null, edt=null, curDate=null, trademarkId=null, trademarkName=null, category1Id=null, category1Name=null, category2Id=null, category2Name=null, category3Id=null, category3Name=null, skuId=6, skuName=null, spuId=null, spuName=null, originalAmount=-2598.0000, activityReduceAmount=0.00, couponReduceAmount=0.00, orderAmount=-2598.00, ts=1744595916797)
 
 //        //TODO 6.分组
@@ -235,7 +235,7 @@ public class dws_trade_sku_order_window extends BaseApp {
                     }
                 }
         );
-//        reduceDS.print();
+        reduceDS.print();
 //        2> TradeSkuOrderBean(stt=2025-04-16 14:40:50, edt=2025-04-16 14:41:00, curDate=2025-04-16, trademarkId=null, trademarkName=null, category1Id=null, category1Name=null, category2Id=null, category2Name=null, category3Id=null, category3Name=null, skuId=31, skuName=null, spuId=null, spuName=null, originalAmount=8763.0000, activityReduceAmount=0.00, couponReduceAmount=204.61, orderAmount=8558.39, ts=1744205865833)
 
 //
@@ -398,7 +398,7 @@ public class dws_trade_sku_order_window extends BaseApp {
                 }
         );
 
-//        c1Stream.print();
+       c1Stream.print();
         SingleOutputStreamOperator<String> map = c1Stream.map(new RichMapFunction<TradeSkuOrderBean, String>() {
             @Override
             public String map(TradeSkuOrderBean tradeSkuOrderBean)   {
@@ -406,7 +406,7 @@ public class dws_trade_sku_order_window extends BaseApp {
                 return JSON.toJSONString(tradeSkuOrderBean);
             }
         });
-//        map.print();
+       map.print();
 
         map.sinkTo(finksink.getDorisSink("dws_trade_sku_order_window"));
     }

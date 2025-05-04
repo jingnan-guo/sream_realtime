@@ -30,7 +30,7 @@ public class DwsTrafficSourceKeywordPageViewWindow extends BasesqlApp
                 "     et as TO_TIMESTAMP_LTZ(ts, 3),\n" +
                 "     WATERMARK FOR et AS et\n" +
                 ")" + Sqlutil.getKafkaDDL(constat.TOPIC_DWD_TRAFFIC_PAGE,"dws_traffic_source_keyword_page_view_window"));
-//   tableEnv.sqlQuery("select * from page_log").execute().print();
+  tableEnv.sqlQuery("select * from page_log").execute().print();
         tableEnv.createTemporarySystemFunction("KeywordUDTF", KeywordUDTF.class);
         Table searchTable = tableEnv.sqlQuery("select \n" +
                 "   page['item']  fullword,\n" +
@@ -80,7 +80,7 @@ public class DwsTrafficSourceKeywordPageViewWindow extends BasesqlApp
                 "  'sink.properties.read_json_by_line' = 'true' " +
                 ")");
         resTable.executeInsert("dws_traffic_source_keyword_page_view_window");
-//    resTable.execute().print();
+    resTable.execute().print();
 
     }
 

@@ -56,7 +56,7 @@ public class dws_traffic_home_detail_page_view_window extends BaseApp {
                     }
                 }
         );
-//        filterDS.print();
+        filterDS.print();
 //        2> {"common":{"ar":"26","uid":"292","os":"Android 13.0","ch":"wandoujia","is_new":"0","md":"vivo x90","mid":"mid_51","vc":"v2.1.134","ba":"vivo","sid":"e76725db-cf1e-4fa7-9ae5-a8b56635afaa"},"page":{"from_pos_seq":1,"page_id":"good_detail","item":"12","during_time":11211,"item_type":"sku_id","last_page_id":"good_detail","from_pos_id":4},"ts":1744728156258}
        //按照mid分组
         KeyedStream<JSONObject, String> jsonObjectStringKeyedStream = filterDS.keyBy(o -> o.getJSONObject("common").getString("mid"));
@@ -112,7 +112,7 @@ public class dws_traffic_home_detail_page_view_window extends BaseApp {
                 }
             }
         });
-//        process.print();
+       process.print();
         //水
         SingleOutputStreamOperator<TrafficHomeDetailPageViewBean> swx = process.
                 assignTimestampsAndWatermarks(WatermarkStrategy.<TrafficHomeDetailPageViewBean>forBoundedOutOfOrderness(Duration.ofSeconds(3)).withTimestampAssigner(new SerializableTimestampAssigner<TrafficHomeDetailPageViewBean>() {
@@ -151,7 +151,7 @@ public class dws_traffic_home_detail_page_view_window extends BaseApp {
                 }
         );
         //TODO 8.将聚合的结果写到Doris
-//        reduceDS.print();
+        reduceDS.print();
 //        4> TrafficHomeDetailPageViewBean(stt=2025-04-16 23:11:57, edt=2025-04-16 23:12:00, curDate=2025-04-16, homeUvCt=0, goodDetailUvCt=1, ts=1744816317782)
 
         SingleOutputStreamOperator<String> map = reduceDS.map(new MapFunction<TrafficHomeDetailPageViewBean, String>() {
@@ -160,7 +160,7 @@ public class dws_traffic_home_detail_page_view_window extends BaseApp {
                 return com.alibaba.fastjson2.JSON.toJSONString(trafficHomeDetailPageViewBean);
             }
         });
-//        map.print();
+        map.print();
 //        1> {"curDate":"2025-04-16","edt":"2025-04-16 23:09:21","goodDetailUvCt":1,"homeUvCt":0,"stt":"2025-04-16 23:09:18"}
 //        Caused by: org.apache.doris.flink.exception.DorisRuntimeException: tabel {} stream load error: realtime_v1.dws_traffic_home_detail_page_view_window, see more in [CANCELLED][DATA_QUALITY_ERROR]Encountered unqualified data, stop processing
 
