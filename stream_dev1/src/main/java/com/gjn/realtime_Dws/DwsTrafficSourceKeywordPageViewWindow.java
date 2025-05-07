@@ -63,7 +63,6 @@ public class DwsTrafficSourceKeywordPageViewWindow extends BasesqlApp
 
 
         tableEnv.executeSql("create table dws_traffic_source_keyword_page_view_window(" +
-                "  stt string, " +
                 "  cur_date string, " +
                 "  keyword string, " +
                 "  keyword_count bigint " +
