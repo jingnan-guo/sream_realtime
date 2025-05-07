@@ -25,7 +25,7 @@ import java.util.Properties;
  * @description:
  */
 public class KafkaUtils {
-    public static Properties buildPropsStringDeserializer(String groupId) {
+    public static Properties buildPropsStringDeserializer(String  groupId) {
         final Properties props = new Properties();
         props.setProperty("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.setProperty("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");

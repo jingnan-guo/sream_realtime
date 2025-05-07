@@ -78,7 +78,7 @@ public class FilterBloomDeduplicatorFunc extends RichFilterFunction<JSONObject> 
         }
 
         // 可能重复的数据，过滤
-        logger.warn("check duplicate data : {}", value);
+        logger.warn("check duplicate data : {}",  value);
         return false;
     }
 

@@ -17,7 +17,7 @@ public class MapCheckRedisSensitiveWordsFunc extends RichMapFunction<JSONObject,
     public JSONObject map(JSONObject jsonObject) throws Exception {
         JSONObject resultJson = new JSONObject();
         // 公共字段提取到外部，避免重复设置
-        resultJson.put("user_id", jsonObject.getLong("user_id"));
+        resultJson.put("user_id",  jsonObject.getLong("user_id"));
         resultJson.put("consignee", jsonObject.getString("info_consignee"));
         resultJson.put("ts_ms",jsonObject.getLong("ts_ms"));
         resultJson.put("ds",jsonObject.getString("ds"));

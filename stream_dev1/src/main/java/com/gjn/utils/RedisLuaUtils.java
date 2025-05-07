@@ -171,7 +171,7 @@ public class RedisLuaUtils {
         try (Jedis jedis = jedisPool.getResource()) {
             return "PONG".equals(jedis.ping());
         } catch (Exception e) {
-            logger.error("Redis健康检查失败", e);
+            logger.error("Redis健康检查失败",e);
             return false;
         }
     }
