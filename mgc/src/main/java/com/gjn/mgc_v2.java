@@ -29,7 +29,7 @@ import java.util.List;
  */
 public class mgc_v2 {
     private static final String kafka_botstrap_servers = "cdh01:9092";
-    private static final String kafka_db_fact_comment_topic = "fact_comment_topic";
+    private static final String kafka_db_fact_comment_topic = "fact_comment";
     private static final String kafka_result_sensitive_words_topic = "words_comment_topic";
 
     @SneakyThrows
@@ -42,7 +42,6 @@ public class mgc_v2 {
         env.getCheckpointConfig().setMinPauseBetweenCheckpoints(2000L);
         env.setRestartStrategy(RestartStrategies.failureRateRestart(3, org.apache.flink.api.common.time.Time.days(30), org.apache.flink.api.common.time.Time.seconds(3)));
 
-
         SingleOutputStreamOperator<String> kafkaCdcDbSource = env.fromSource(
                 KafkaUtils.buildKafkaSource(
                         kafka_botstrap_servers,
@@ -53,7 +52,7 @@ public class mgc_v2 {
                 WatermarkStrategy.noWatermarks(),
                 "kafka_cdc_db_source"
         ).uid("kafka_fact_comment_source").name("kafka_fact_comment_source");
-
+        //kafkaCdcDbSource.print();
 
         SingleOutputStreamOperator<JSONObject> mapJsonStr = kafkaCdcDbSource.map(JSON::parseObject).uid("to_json_string").name("to_json_string");
 
@@ -86,7 +85,6 @@ public class mgc_v2 {
                 )
                 .uid("sink to kafka result sensitive words topic")
                 .name("sink to kafka result sensitive words topic");
-
 
 
         env.execute();

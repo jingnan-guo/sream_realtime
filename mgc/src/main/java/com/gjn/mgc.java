@@ -211,7 +211,7 @@ public class mgc {
 
         suppleTimeFieldDs.map(js -> js.toJSONString())
                 .sinkTo(
-                        KafkaUtils.buildKafkaSink("cdh01:9092", "fact_comment_topic")
+                        KafkaUtils.buildKafkaSink("cdh01:9092", "fact_comment")
                 ).uid("kafka_db_fact_comment_sink").name("kafka_db_fact_comment_sink");
 
 
