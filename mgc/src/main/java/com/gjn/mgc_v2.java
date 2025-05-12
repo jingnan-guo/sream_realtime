@@ -32,8 +32,7 @@ public class mgc_v2 {
     private static final String kafka_db_fact_comment_topic = "fact_comment";
     private static final String kafka_result_sensitive_words_topic = "words_comment_topic";
 
-    @SneakyThrows
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
         env.enableCheckpointing(5000L, CheckpointingMode.EXACTLY_ONCE);
