@@ -3,6 +3,7 @@ package com.gjn.gd;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.connector.kafka.source.KafkaSource;
@@ -18,7 +19,7 @@ import org.apache.flink.util.Collector;
  * @Package com.gjn.dwd.dwd_brand_type
  * @Author jingnan.guo
  * @Date 2025/5/12 14:10
- * @description: 商品 品牌  品类级别
+ * @description: 商品 品牌  品类级别    没有运用异步关联
  */
 public class dwd_brand_type {
     public static void main(String[] args) throws Exception {
@@ -49,9 +50,9 @@ public class dwd_brand_type {
                 JSONObject object = new JSONObject();
                 JSONObject after = jsonObject.getJSONObject("after");
                 Integer id = after.getInteger("id");
-                String name = after.getString("name");
+                String base_category1Name = after.getString("name");
                 object.put("id", id);
-                object.put("name", name);
+                object.put("base_category1Name", base_category1Name);
                 return object;
             }
         });
@@ -69,10 +70,10 @@ public class dwd_brand_type {
                 JSONObject after = jsonObject.getJSONObject("after");
                 Integer id = after.getInteger("id");
                 Integer category1Id = after.getInteger("category1_id");
-                String name = after.getString("name");
+                String category2Name = after.getString("name");
                 object.put("id", id);
                 object.put("category1Id", category1Id);
-                object.put("name", name);
+                object.put("category2Name", category2Name);
                 return object;
             }
         });
@@ -90,10 +91,10 @@ public class dwd_brand_type {
                 JSONObject after = jsonObject.getJSONObject("after");
                 Integer id = after.getInteger("id");
                 Integer category2Id = after.getInteger("category2_id");
-                String name = after.getString("name");
+                String category3Name = after.getString("name");
                 object.put("id", id);
                 object.put("category2Id", category2Id);
-                object.put("name", name);
+                object.put("category3Name", category3Name);
                 return object;
             }
         });
@@ -116,6 +117,7 @@ public class dwd_brand_type {
                 String weight = after.getString("weight");
                 String tmId = after.getString("tm_id");
                 String category3Id = after.getString("category3_id");
+                String createTime = after.getString("create_time");
                 object.put("id", id);
                 object.put("price", price);
                 object.put("skuName", skuName);
@@ -123,6 +125,7 @@ public class dwd_brand_type {
                 object.put("weight", weight);
                 object.put("tmId", tmId);
                 object.put("category3Id", category3Id);
+                object.put("createTime", createTime);
                 return object;
             }
         });
@@ -170,7 +173,7 @@ public class dwd_brand_type {
                         collector.collect(jsonObject);
                     }
                 });
-        ds4.print();
+        //ds4.print();
 
 
         SingleOutputStreamOperator<JSONObject> ds5 = ds4.keyBy(o -> o.getInteger("category2Id"))
@@ -197,6 +200,22 @@ public class dwd_brand_type {
                 });
         //ds6.print();
 
+        SingleOutputStreamOperator<JSONObject> DS7 = ds6.map(new MapFunction<JSONObject, JSONObject>() {
+            @Override
+            public JSONObject map(JSONObject json) throws Exception {
+                JSONObject result = new JSONObject();
+                result.put("id", json.getInteger("id"));          // 提取 ID
+                result.put("skuName", json.getString("skuName"));      // 提取名称
+                result.put("price", json.getDouble("price"));    // 提取价格
+                result.put("base_category1Name", json.getString("base_category1Name"));    // 提取价格
+                result.put("category2Name", json.getString("category2Name"));    // 提取价格
+                result.put("category3Name", json.getString("category3Name"));    // 提取价格
+                result.put("createTime", json.getString("createTime"));    // 提取价格
+                return result;
+            }
+        });
+
+        DS7.print();
 
         env.execute();
     }
