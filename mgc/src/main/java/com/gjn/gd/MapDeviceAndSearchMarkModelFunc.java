@@ -1,9 +1,6 @@
 package com.gjn.gd;
 
 import com.alibaba.fastjson.JSONObject;
-import com.gjn.base.DimBaseCategory;
-import com.gjn.base.DimCategoryCompare;
-import com.gjn.utils.JdbcUtils;
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.configuration.Configuration;
 

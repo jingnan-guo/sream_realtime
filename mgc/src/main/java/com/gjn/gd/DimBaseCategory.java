@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 
 /**
- * @Package com.cj.bean.DimBaseCategory
+ * @Package com.gjn.base.DimBaseCategory
  * @Author jingnan.guo
  * @Date 2025/5/14 下午2:34
  * @description:

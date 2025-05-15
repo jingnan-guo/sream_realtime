@@ -5,14 +5,12 @@ import java.util.Calendar;
 
 
 /**
- * @Package DWD.func.TimePeriodFunc
+ * @Package com.gjn.func.TimePeriodFunc
  * @Author jingnan.guo
  * @Date 2025/5/14 11:13
  * @description: 转换时间 例如 : 凌晨 下午
  */
 public class TimePeriodFunc {
-
-
 
     public static String getPriceRange(double totalAmount) {
         if (totalAmount < 0) {

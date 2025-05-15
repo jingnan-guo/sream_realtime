@@ -1,7 +1,6 @@
 package com.gjn.gd;
 
 import com.alibaba.fastjson.JSONObject;
-import com.mysql.cj.xdevapi.Schema;
 import org.apache.flink.api.common.state.MapState;
 import org.apache.flink.api.common.state.MapStateDescriptor;
 import org.apache.flink.api.common.state.ValueState;
@@ -18,7 +17,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * @Package com.cj.func.processfilter
+ * @Package com.gjn.func.processfilter
  * @Author jingnan.guo
  * @Date 2025/5/13 下午4:51
  * @description:

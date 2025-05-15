@@ -2,23 +2,24 @@ package com.gjn.gd;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-
+import lombok.SneakyThrows;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
-import org.apache.flink.api.common.restartstrategy.RestartStrategies;
+import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
-import org.apache.flink.api.common.time.Time;
+import org.apache.flink.connector.base.DeliveryGuarantee;
+import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
+import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
-import org.apache.flink.runtime.state.hashmap.HashMapStateBackend;
-import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
-import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.co.ProcessJoinFunction;
+import org.apache.flink.streaming.api.windowing.time.Time;
+import org.apache.flink.util.Collector;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
 
 /**
  * @Package com.gjn.dwd.dwdbasedb
@@ -27,21 +28,18 @@ import java.util.*;
  * @description:
  */
 public class dwdbasedb {
-    public static void main(String[] args) throws Exception {
+    @SneakyThrows
+    public static void main(String[] args) {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
-        env.enableCheckpointing(5000L, CheckpointingMode.EXACTLY_ONCE);
-//        设置了检查点的超时时间为 60000 毫秒（即 60 秒）。如果在 60 秒内检查点操作没有完成，就会被视为失败。
-        env.getCheckpointConfig().setCheckpointTimeout(60000L);
-//        当作业被取消时，检查点数据不会被删除，而是会保留下来，这样在后续需要时可以利用这些检查点数据进行恢复操作。
-        env.getCheckpointConfig().setExternalizedCheckpointCleanup(CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
-//        两次检查点操作之间的最小间隔时间为 2000 毫秒（即 2 秒）。这是为了避免在短时间内频繁进行检查点操作，从而影响作业的正常处理性能。
-        env.getCheckpointConfig().setMinPauseBetweenCheckpoints(2000L);
-//        表示在 30 天内允许的最大失败次数为 3 次。
-        env.setRestartStrategy(RestartStrategies.failureRateRestart(3, Time.days(30), Time.seconds(3)));
-//        状态后端用于管理 Flink 作业的状态数据，HashMapStateBackend 会将状态数据存储在 TaskManager 的内存中，适用于小规模的状态管理。
-        env.setStateBackend(new HashMapStateBackend());
-
+        /**
+         * 构建Kafka数据源：
+         * - 连接cdh01:9092服务器
+         * - 订阅topic_db主题
+         * - 使用my-group消费者组
+         * - 从最早偏移量开始消费
+         * - 使用字符串反序列化器
+         */
         KafkaSource<String> source = KafkaSource.<String>builder()
                 .setBootstrapServers("cdh01:9092")
                 .setTopics("topic_db")
@@ -50,14 +48,23 @@ public class dwdbasedb {
                 .setValueOnlyDeserializer(new SimpleStringSchema())
                 .build();
 
-        DataStreamSource<String> kafkaStrDS = env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka Source");
-
-        // 过滤出  用户表
-        SingleOutputStreamOperator<JSONObject> user_infoDS = kafkaStrDS.map(JSON::parseObject)
+        DataStreamSource<String> ste = env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka Source");
+        /**
+         * 数据过滤与解析：
+         * 1. 将JSON字符串转换为JSON对象
+         * 2. 过滤出source.table字段为"user_info"的数据
+         */
+        SingleOutputStreamOperator<JSONObject> stre = ste.map(JSON::parseObject)
                 .filter(o -> o.getJSONObject("source").getString("table").equals("user_info"));
-        //user_infoDS.print();
 
-        SingleOutputStreamOperator<JSONObject> map = user_infoDS.map(jsonStr -> {
+        /**
+         * 用户信息处理：
+         * 1. 解析after字段中的生日数据
+         * 2. 将EpochDay格式转换为ISO日期格式
+         * 3. 计算星座、年代、年龄等衍生字段
+         * 4. 更新原始JSON对象
+         */
+        SingleOutputStreamOperator<JSONObject> user = stre.map(jsonStr -> {
             JSONObject json = JSON.parseObject(String.valueOf(jsonStr));
             JSONObject after = json.getJSONObject("after");
             if (after != null && after.containsKey("birthday")) {
@@ -66,29 +73,135 @@ public class dwdbasedb {
                     LocalDate date = LocalDate.ofEpochDay(epochDay);
                     after.put("birthday", date.format(DateTimeFormatter.ISO_DATE));
 
-                    // 添加星座判断逻辑
                     String zodiacSign = getZodiacSign(date);
                     after.put("zodiac_sign", zodiacSign);
-
-                    // 添加年代字段
                     int year = date.getYear();
                     int decade = (year / 10) * 10; // 计算年代（如1990, 2000）
-                    after.put("birth_decade", decade);
+                    after.put("decade", decade);
 
-                    // 添加年龄计算逻辑
                     LocalDate currentDate = LocalDate.now();
                     int age = calculateAge(date, currentDate);
                     after.put("age", age);
+
                 }
             }
             return json;
         });
-        //map.print();
 
-        //过滤 用户详情表
-        SingleOutputStreamOperator<JSONObject> user_detailDS = kafkaStrDS.map(JSON::parseObject)
-                .filter(o -> o.getJSONObject("source").getString("table").equals("user_info_sup_msg"));
-        //user_detailDS.print();
+        /**
+         * 用户信息字段提取：
+         * 从JSON对象中提取核心用户属性字段
+         * 包含基础信息和计算字段：生日、年代、姓名、星座、ID等
+         */
+        SingleOutputStreamOperator<JSONObject> userK = user.map(new RichMapFunction<JSONObject, JSONObject>() {
+            @Override
+            public JSONObject map(JSONObject jsonObject) {
+                JSONObject object = new JSONObject();
+                JSONObject after = jsonObject.getJSONObject("after");
+
+                String birthday = after.getString("birthday");
+                String gender = after.getString("gender");
+                String name = after.getString("name");
+                String zodiacSign = after.getString("zodiac_sign");
+                Integer id = after.getInteger("id");
+                Integer birthDecade = after.getInteger("decade");
+                String login_name = after.getString("login_name");
+                String userLevel = after.getString("user_level");
+                String phoneNum = after.getString("phone_num");
+                String email = after.getString("email");
+                Long tsMs = jsonObject.getLong("ts_ms");
+                Integer age = after.getInteger("age");
+
+                object.put("birthday", birthday);
+                object.put("decade", birthDecade);
+                object.put("name", name);
+                object.put("zodiac_sign", zodiacSign);
+                object.put("id", id);
+                object.put("login_name", login_name);
+                object.put("user_level", userLevel);
+                object.put("phone_num", phoneNum);
+                object.put("gender", gender);
+                object.put("email", email);
+                object.put("ts_ms",tsMs);
+                object.put("age", age);
+                return object;
+            }
+        });
+
+        /**
+         * 补充信息过滤：
+         * 1. 解析JSON数据
+         * 2. 过滤出source.table字段为"user_info_sup_msg"的数据
+         */
+        SingleOutputStreamOperator<JSONObject> sup = ste.map(JSON::parseObject).filter(o -> o.getJSONObject("source").getString("table").equals("user_info_sup_msg"));
+        /**
+         * 补充信息字段提取：
+         * 提取用户扩展属性字段
+         * 包含身高、体重、单位、创建时间等
+         */
+        SingleOutputStreamOperator<JSONObject> supK = sup.map(new RichMapFunction<JSONObject, JSONObject>() {
+            @Override
+            public JSONObject map(JSONObject jsonObject) {
+                JSONObject object = new JSONObject();
+                JSONObject after = jsonObject.getJSONObject("after");
+                Integer uid = after.getInteger("uid");
+                String height = after.getString("height");
+                String weight = after.getString("weight");
+                String unitWeight = after.getString("unit_weight");
+                String unitHeight = after.getString("unit_height");
+                Long createTs = after.getLong("create_ts");
+                object.put("uid", uid);
+                object.put("height", height);
+                object.put("weight", weight);
+                object.put("unit_weight", unitWeight);
+                object.put("unit_height", unitHeight);
+                object.put("create_ts", createTs);
+                return object;
+            }
+        });
+        /**
+         * 间隔连接操作：
+         * 1. 按用户ID关联主信息和补充信息
+         * 2. 在60秒时间窗口内进行关联
+         * 3. 合并两个数据流的字段
+         */
+        SingleOutputStreamOperator<JSONObject> ds3 = userK.keyBy(o -> o.getInteger("id"))
+                .intervalJoin(supK.keyBy(o -> o.getInteger("uid")))
+                .between(Time.seconds(-60), Time.seconds(60))
+                .process(new ProcessJoinFunction<JSONObject, JSONObject, JSONObject>() {
+                    @Override
+                    public void processElement(JSONObject jsonObject, JSONObject jsonObject2, ProcessJoinFunction<JSONObject, JSONObject, JSONObject>.Context context, Collector<JSONObject> collector){
+                        jsonObject.putAll(jsonObject2);
+                        collector.collect(jsonObject);
+                    }
+                });
+
+        //ds3.print();
+        // 将合并后的JSON对象转换为字符串格式
+        SingleOutputStreamOperator<String> ds3String = ds3.map(o -> JSONObject.toJSONString(o));
+
+        //{"birthday":"1998-10-09","decade":1990,"gender":"M","zodiac_sign":"天秤座","create_ts":1747083896000,"weight":"77","uid":102,"login_name":"t9ao3sf","unit_height":"cm","name":"孙力","user_level":"1","phone_num":"13326899233","id":102,"unit_weight":"kg","email":"t9ao3sf@yahoo.com","ts_ms":1747055497144,"age":26,"height":"154"}
+        ds3String.print();
+        // 将用户信息表 存入kafka主题
+        /**
+         * Kafka输出配置：
+         * 1. 连接cdh01:9092服务器
+         * 2. 写入user_info主题
+         * 3. 使用至少一次语义保证
+         */
+        KafkaSink<String> sink = KafkaSink.<String>builder()
+                .setBootstrapServers("cdh01:9092")
+                .setRecordSerializer(KafkaRecordSerializationSchema.builder()
+                                .setTopic("user_info")
+                                .setValueSerializationSchema(new SimpleStringSchema())
+                                .build()
+                )
+                .setDeliveryGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
+                .build();
+
+        //存入kafka
+        ds3String.sinkTo(sink);
+
 
         env.execute();
     }
@@ -97,7 +210,7 @@ public class dwdbasedb {
         int month = date.getMonthValue();
         int day = date.getDayOfMonth();
 
-        // 定义星座区间映射
+// 定义星座区间映射
         if ((month == 12 && day >= 22) || (month == 1 && day <= 19)) {
             return "摩羯座";
         } else if ((month == 1 && day >= 20) || (month == 2 && day <= 18)) {
@@ -125,7 +238,6 @@ public class dwdbasedb {
         }
         return "未知"; // 默认情况，实际上不会执行到这一步
     }
-
     private static int calculateAge(LocalDate birthDate, LocalDate currentDate) {
         // 如果生日日期晚于当前日期，抛出异常
         if (birthDate.isAfter(currentDate)) {
@@ -143,4 +255,5 @@ public class dwdbasedb {
 
         return age;
     }
+
 }

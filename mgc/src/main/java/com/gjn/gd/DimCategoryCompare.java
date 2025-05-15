@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 
 /**
- * @Package com.cj.bean.DimCategoryCompare
+ * @Package com.gjn.base.DimCategoryCompare
  * @Author jingnan.guo
  * @Date 2025/5/14 下午2:35
  * @description:

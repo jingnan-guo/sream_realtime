@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @Package com.cj.util.JdbcUtils
+ * @Package com.gjn.util.JdbcUtils
  * @Author jingnan.guo
  * @Date 2025/5/14 下午2:48
  * @description:

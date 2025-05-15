@@ -37,11 +37,11 @@ public class flinkcdc {
                 .hostname("cdh03") // 设置 MySQL 主机名
                 .port(3306) // 设置 MySQL 端口
                 .databaseList("stream_realtime") // 设置捕获的数据库， 如果需要同步整个数据库，请将 tableList 设置为 ".*".
-                .tableList("stream_realtime.*") // 设置捕获的表
+                .tableList("stream_realtime.category_compare_dic") // 设置捕获的表
                 .username("root") // 设置 MySQL 用户名
                 .password("root") // 设置 MySQL 密码
                 .debeziumProperties(prop)// 设置 Debezium 属性
-                .startupOptions(StartupOptions.initial()) // 设置启动选项为初始状态
+               .startupOptions(StartupOptions.initial()) // 设置启动选项为初始状态
                 //.startupOptions(StartupOptions.latest())
                 .deserializer(new JsonDebeziumDeserializationSchema()) // 将 SourceRecord 转换为 JSON 字符串
                 .build();
