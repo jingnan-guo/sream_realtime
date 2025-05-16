@@ -42,7 +42,7 @@ public class dwdAgeThemeSummaryDetails  {
                 .build();
 
         DataStreamSource<String> kafkaStrDS = env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka Source");
-        //kafkaStrDS.print("kafka>>>");
+        kafkaStrDS.print("kafka>>>");
 
         //过滤出  订单表
         SingleOutputStreamOperator<JSONObject> order_info = kafkaStrDS.map(JSON::parseObject)
