@@ -1,14 +1,19 @@
 package com.gjn.gd;
 
+import com.alibaba.fastjson.JSONObject;
+import com.beust.jcommander.internal.Nullable;
 import org.apache.doris.flink.cfg.DorisExecutionOptions;
 import org.apache.doris.flink.cfg.DorisOptions;
 import org.apache.doris.flink.cfg.DorisReadOptions;
 import org.apache.doris.flink.sink.DorisSink;
 import org.apache.doris.flink.sink.writer.serializer.SimpleStringSerializer;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.connector.base.DeliveryGuarantee;
 import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
 
 import java.util.Properties;
 
@@ -33,29 +38,28 @@ public class flinksink {
         return sink;
 
     }
-//    public static KafkaSink<Tuple2<JSONObject, TableProcessDwd>> getKafkaSink(){
-//        KafkaSink<Tuple2<JSONObject, TableProcessDwd>> kafkaSink = KafkaSink.<Tuple2<JSONObject, TableProcessDwd>>builder()
-//                .setBootstrapServers(constat.KAFKA_BROKERS)
-//                .setRecordSerializer(new KafkaRecordSerializationSchema<Tuple2<JSONObject, TableProcessDwd>>() {
-//                    @Nullable
-//                    @Override
-//                    public ProducerRecord<byte[], byte[]> serialize(
-//                            Tuple2<JSONObject, TableProcessDwd> tup2, KafkaSinkContext context, Long timestamp) {
-//                        JSONObject jsonObj = tup2.f0;
-//                        TableProcessDwd tableProcessDwd = tup2.f1;
-//                        String topic = tableProcessDwd.getSinkTable();
-//                        return new ProducerRecord<byte[], byte[]>(topic, jsonObj.toJSONString().getBytes());
-//                    }
-//                })
-//                //当前配置决定是否开启事务，保证写到kafka数据的精准一次
-//                .setDeliveryGuarantee(DeliveryGuarantee.EXACTLY_ONCE)
-//                //设置事务Id的前缀
-//                .setTransactionalIdPrefix("dwd_base_log_")
-//                //设置事务的超时时间   检查点超时时间 <     事务的超时时间 <=事务最大超时时间
-//                .setProperty(ProducerConfig.TRANSACTION_TIMEOUT_CONFIG,15*60*1000+"")
-//                .build();
-//        return kafkaSink;
-//    }
+    public static KafkaSink<Tuple2<JSONObject, TableProcessDwd>> getKafkaSink(){
+        KafkaSink<Tuple2<JSONObject, TableProcessDwd>> kafkaSink = KafkaSink.<Tuple2<JSONObject, TableProcessDwd>>builder()
+                .setBootstrapServers(constant.KAFKA_BROKERS)
+                .setRecordSerializer(new KafkaRecordSerializationSchema<Tuple2<JSONObject, TableProcessDwd>>() {
+                    @Override
+                    public ProducerRecord<byte[], byte[]> serialize(
+                            Tuple2<JSONObject, TableProcessDwd> tup2, KafkaSinkContext context, Long timestamp) {
+                        JSONObject jsonObj = tup2.f0;
+                        TableProcessDwd tableProcessDwd = tup2.f1;
+                        String topic = tableProcessDwd.getSinkTable();
+                        return new ProducerRecord<byte[], byte[]>(topic, jsonObj.toJSONString().getBytes());
+                    }
+                })
+                //当前配置决定是否开启事务，保证写到kafka数据的精准一次
+                .setDeliveryGuarantee(DeliveryGuarantee.EXACTLY_ONCE)
+                //设置事务Id的前缀
+                .setTransactionalIdPrefix("dwd_base_log_")
+                //设置事务的超时时间   检查点超时时间 <     事务的超时时间 <=事务最大超时时间
+                .setProperty(ProducerConfig.TRANSACTION_TIMEOUT_CONFIG,15*60*1000+"")
+                .build();
+        return kafkaSink;
+    }
     public static DorisSink<String> getDorisSink(String tableName){
         Properties props = new Properties();
         props.setProperty("format", "json");
